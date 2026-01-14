@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>두벌식 타자 연습 → 게임</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #E0F7FA;
+      --bg2: #E8F5E9;
+      --bg3: #F3E5F5;
+      --ink: #2d3436;
+      --muted: #636e72;
+      --card: #ffffff;
+      --primary: #6C5CE7;
+      --accent: #00B894;
+      --warn: #fdcb6e;
+      --bad: #ff7675;
+      --font-main: 'Jua', sans-serif;
+      --font-hand: 'Gaegu', cursive;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-main);
+      color: var(--ink);
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg1), var(--bg3));
+      overflow-x: hidden;
+    }
+
+    /* --- COMMON UI --- */
+    .btn {
+      border: none;
+      cursor: pointer;
+      padding: 0.8rem 1.2rem;
+      border-radius: 15px;
+      font-family: var(--font-main);
+      font-size: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 0 #4834d4;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      border: 2px solid #dfe6e9;
+      color: var(--ink);
+      box-shadow: 0 4px 0 #b2bec3;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 1rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      color: var(--primary);
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-family: var(--font-hand);
+      font-size: 1.5rem;
+      color: var(--muted);
+    }
+
+    /* --- MENU VIEW --- */
+    #menuView {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .level-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 3px solid transparent;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .level-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .level-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .level-name {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .level-desc {
+      font-family: var(--font-hand);
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+
+    /* Unique style for Game Modes */
+    .level-card.game-mode {
+      background: #fff;
+      border-color: #6c5ce7;
+      /* Primary Purple */
+      border-width: 3px;
+      border-style: dashed;
+      color: var(--ink);
+    }
+
+    .level-card.game-mode .level-desc {
+      color: var(--muted);
+    }
+
+    .level-card.game-mode:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 15px 30px rgba(108, 92, 231, 0.2);
+    }
+
+    /* --- PRACTICE VIEW --- */
+    #practiceView {
+      display: none;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    .practice-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .p-grid {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 1rem;
+    }
+
+    @media (max-width: 800px) {
+      .p-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .target-box {
+      text-align: center;
+      padding: 2rem;
+      background: #E8EAF6;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+    }
+
+    .target-char {
+      font-size: 4rem;
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .progress-track {
+      background: #eee;
+      height: 15px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #fd79a8, #6c5ce7);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    #practiceInput {
+      flex: 1;
+      padding: 1rem;
+      font-size: 1.5rem;
+      border-radius: 15px;
+      border: 3px solid #dfe6e9;
+      font-family: var(--font-main);
+      text-align: center;
+    }
+
+    #practiceInput:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #E0F2F1;
+    }
+
+    .shake {
+      animation: shake 0.3s;
+    }
+
+    /* --- GAME VIEW (Space Mode) --- */
+    #gameView {
+      display: none;
+      animation: fadeIn 0.5s;
+      position: relative;
+    }
+
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Stars */
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.5;
+      animation: twinkle 2s infinite alternate;
+    }
+
+    /* Character */
+    .mascot-area {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 100px;
+      z-index: 10;
+      font-size: 4rem;
+      text-align: center;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Falling Words */
+    .word-bubble {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: bold;
+      color: #2d3436;
+      box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+      white-space: nowrap;
+      transition: transform 0.1s;
+    }
+
+    .word-bubble.matched {
+      background: #55efc4;
+      color: #00b894;
+      transform: scale(1.5);
+      opacity: 0;
+      transition: all 0.2s;
+    }
+
+    .word-bubble.crashed {
+      background: #ff7675;
+      transform: rotate(15deg);
+    }
+
+    /* HUD */
+    .game-hud {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      color: white;
+      font-size: 1.5rem;
+      z-index: 20;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .game-input-area {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    #gameInput {
+      width: 300px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      border-radius: 30px;
+      border: none;
+      outline: none;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      text-align: center;
+      font-family: var(--font-main);
+      autocomplete: "new-password";
+      spellcheck: "false";
+    }
+
+    /* Overlays */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      z-index: 50;
+    }
+
+    .overlay h2 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: #fdcb6e;
+    }
+
+    .overlay button {
+      font-size: 1.5rem;
+      padding: 1rem 3rem;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      25% {
+        transform: translateX(-5px)
+      }
+
+      75% {
+        transform: translateX(5px)
+      }
+    }
+
+    @keyframes twinkle {
+      from {
+        opacity: 0.3
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0)
+      }
+
+      50% {
+        transform: translateX(-50%) translateY(-15px)
+      }
+    }
+
+    /* Keyboard Visual */
+    .key {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 36px;
+      height: 36px;
+      background: #fff;
+      border: 1px solid #b2bec3;
+      border-radius: 6px;
+      margin: 2px;
+      font-size: 0.8rem;
+    }
+
+    .key.hl {
+      background: #ffeaa7;
+      border-color: #fdcb6e;
+      transform: scale(1.1);
+      box-shadow: 0 0 5px #fdcb6e;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <!-- HEADER -->
+    <header>
+      <h1>타자 연습 왕 👑</h1>
+      <div class="subtitle">단계를 선택해서 연습을 시작해봐요!</div>
+      <div style="margin-top:10px;">
+        <a href="index.html" class="btn btn-secondary" style="text-decoration:none; font-size:0.9rem;">🏠 홈으로</a>
+      </div>
+    </header>
+
+    <!-- MENU VIEW -->
+    <div id="menuView"></div>
+
+    <!-- PRACTICE VIEW (Standard) -->
+    <div id="practiceView">
+      <div class="practice-nav">
+        <button onclick="goMenu()" class="btn btn-secondary">◀ 메뉴로</button>
+        <div style="font-size:1.2rem; font-weight:bold; color:var(--primary);" id="activeModuleTitle">-</div>
+      </div>
+      <div class="p-grid">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span>성공: <b id="scoreText">0/20</b></span>
+            <span>정확도: <b id="accText">100%</b></span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressBar"></div>
+          </div>
+          <div class="target-box">
+            <div class="target-char" id="targetChar">?</div>
+            <div class="target-hint" id="targetHint">-</div>
+          </div>
+          <div class="input-row">
+            <input type="text" id="practiceInput" autocomplete="off" placeholder="입력!" />
+            <button id="skipBtn" class="btn btn-secondary">패스</button>
+          </div>
+        </div>
+        <div class="card" style="display:flex; flex-direction:column; gap:1rem;">
+          <div id="coachText" style="font-size:1.1rem; color:var(--primary); font-weight:bold;">-</div>
+          <div id="kbdContainer" style="background:#eee; padding:5px; border-radius:10px; text-align:center;"></div>
+          <div style="margin-top:auto;">
+            <button id="passBtn" class="btn btn-primary" style="width:100%; display:none;">🎉 통과! (메뉴로)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME VIEW (Space) -->
+    <div id="gameView">
+      <div class="game-container">
+        <!-- Stars BG -->
+        <div id="starBg"></div>
+
+        <div class="game-hud">
+          <div>점수: <span id="gScore">0</span></div>
+          <div>목숨: <span id="gLives">❤️❤️❤️</span></div>
+        </div>
+
+        <!-- Game Content -->
+        <div id="wordArea"></div> <!-- Falling words go here -->
+
+        <div class="mascot-area">👽</div>
+
+        <div class="game-input-area">
+          <input type="text" id="gameInput" autocomplete="new-password" spellcheck="false" placeholder="단어를 입력하세요!" />
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOverMsg" class="overlay" style="display:none;">
+          <h2>게임 오버!</h2>
+          <div style="font-size:1.5rem; margin-bottom:20px;">최종 점수: <span id="finalScore">0</span></div>
+          <div style="display:flex; gap:10px;">
+            <button onclick="goMenu()" class="btn btn-secondary">나가기</button>
+            <button onclick="restartGame()" class="btn btn-primary">다시하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* --- CONFIG & DATA --- */
+    const MODULES = [
+      { id: "b_left_home", name: "1. 왼손 기본", desc: "ㅁ ㄴ ㅇ ㄹ ㅎ", icon: "🤚", color: "#FFAB91", type: "chars", chars: ["ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ"], goal: 20, coach: "왼손 기본 위치! (ㅁㄴㅇㄹㅎ)" },
+      { id: "b_right_home", name: "2. 오른손 기본", desc: "ㅗ ㅓ ㅏ ㅣ", icon: "✋", color: "#81ECEC", type: "chars", chars: ["ㅗ", "ㅓ", "ㅏ", "ㅣ"], goal: 20, coach: "오른손 기본 위치! (ㅗㅓㅏㅣ)" },
+      { id: "b_left_top", name: "3. 왼손 윗줄", desc: "ㅂ ㅈ ㄷ ㄱ ㅅ", icon: "👆", color: "#A29BFE", type: "chars", chars: ["ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ"], goal: 20, coach: "왼손을 살짝 위로 (ㅂㅈㄷㄱㅅ)" },
+      { id: "b_right_top", name: "4. 오른손 윗줄", desc: "ㅛ ㅕ ㅑ ㅐ ㅔ", icon: "☝️", color: "#74B9FF", type: "chars", chars: ["ㅛ", "ㅕ", "ㅑ", "ㅐ", "ㅔ"], goal: 20, coach: "오른손을 살짝 위로 (ㅛㅕㅑㅐㅔ)" },
+      { id: "b_left_bot", name: "5. 왼손 아랫줄", desc: "ㅋ ㅌ ㅊ ㅍ ㅠ", icon: "👇", color: "#FFEAA7", type: "chars", chars: ["ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ"], goal: 20, coach: "왼손을 아래로 (ㅋㅌㅊㅍㅠ)" },
+      { id: "word_easy", name: "6. 단어 연습", desc: "받침 없는 쉬운 단어", icon: "📝", color: "#FAB1A0", type: "words", words: ["하늘", "바다", "나무", "학교", "친구", "연필", "지우개", "사과", "딸기", "토끼", "고양이", "강아지", "우유", "빵", "가족", "사랑", "행복", "무지개", "별", "달", "해", "웃음", "오늘", "내일"], goal: 15, coach: "단어를 보고 입력 후 엔터!" },
+      { id: "high_shift", name: "7. 고급 (Shift)", desc: "쌍자음과 어려운 단어", icon: "🌟", color: "#FDCB6E", type: "words", words: ["예쁜", "얘기", "쌍둥이", "까치", "딸기", "짜장", "빼기", "쏙쏙", "꽁꽁", "쭉쭉", "예의", "빵빵", "쌍쌍", "꼭꼭", "예쁘게"], goal: 15, coach: "Shift 키를 같이 눌러야 해요!" },
+
+      // --- NEW GAME MODES ---
+      { id: "game_mid", name: "중급 우주 게임", desc: "떨어지는 단어를 맞춰라!", icon: "🚀", isGame: true, mode: "mid", wordsRef: "word_easy" },
+      { id: "game_high", name: "고급 우주 게임", desc: "더 빠르고 어려운 단어!", icon: "🛸", isGame: true, mode: "high", wordsRef: "high_shift" }
+    ];
+
+    const KEYMAP = {
+      q: { ko: "ㅂ" }, w: { ko: "ㅈ" }, e: { ko: "ㄷ" }, r: { ko: "ㄱ" }, t: { ko: "ㅅ" },
+      y: { ko: "ㅛ" }, u: { ko: "ㅕ" }, i: { ko: "ㅑ" }, o: { ko: "ㅐ" }, p: { ko: "ㅔ" },
+      a: { ko: "ㅁ" }, s: { ko: "ㄴ" }, d: { ko: "ㅇ" }, f: { ko: "ㄹ" }, g: { ko: "ㅎ" },
+      h: { ko: "ㅗ" }, j: { ko: "ㅓ" }, k: { ko: "ㅏ" }, l: { ko: "ㅣ" },
+      z: { ko: "ㅋ" }, x: { ko: "ㅌ" }, c: { ko: "ㅊ" }, v: { ko: "ㅍ" },
+      b: { ko: "ㅠ" }, n: { ko: "ㅜ" }, m: { ko: "ㅡ" }
+    };
+    const CHAR_TO_KEY = {};
+    Object.entries(KEYMAP).forEach(([k, v]) => { if (v.ko) CHAR_TO_KEY[v.ko] = k; });
+
+    /* --- STATE --- */
+    let activeModule = null;
+    let pScore = 0, pAttempts = 0, pTarget = "";
+    let gScore = 0, gLives = 3, gWords = [], gTimer = null, gAnimation = null, gSpawnRate = 2000;
+
+    /* --- MENU --- */
+    function goMenu() {
+      stopGame();
+      document.getElementById('practiceView').style.display = 'none';
+      document.getElementById('gameView').style.display = 'none';
+      document.getElementById('menuView').style.display = 'grid';
+      renderMenu();
+    }
+
+    function renderMenu() {
+      const list = document.getElementById('menuView');
+      list.innerHTML = "";
+      MODULES.forEach(m => {
+        const div = document.createElement('div');
+        div.className = `level-card ${m.isGame ? 'game-mode' : ''}`;
+        div.style.borderColor = m.color || 'transparent';
+        if (m.isGame) div.innerHTML = `<div class="level-icon">${m.icon}</div><div class="level-name">${m.name}</div><div class="level-desc">${m.desc}</div>`;
+        else div.innerHTML = `<div class="level-icon">${m.icon}</div><div class="level-name">${m.name}</div><div class="level-desc">${m.desc}</div>`;
+
+        div.onclick = () => {
+          if (m.isGame) startGame(m);
+          else startPractice(m);
+        };
+        list.appendChild(div);
+      });
+    }
+
+    /* --- PRACTICE MODE --- */
+    function startPractice(m) {
+      activeModule = m;
+      pScore = 0; pAttempts = 0;
+      document.getElementById('menuView').style.display = 'none';
+      document.getElementById('practiceView').style.display = 'block';
+
+      document.getElementById('activeModuleTitle').textContent = m.name;
+      document.getElementById('coachText').textContent = m.coach;
+      document.getElementById('passBtn').style.display = 'none';
+
+      renderKeyboard();
+      updatePStats();
+      nextPTarget();
+      document.getElementById('practiceInput').value = "";
+      document.getElementById('practiceInput').focus();
+    }
+
+    function nextPTarget() {
+      const arr = activeModule.type === 'chars' ? activeModule.chars : activeModule.words;
+      pTarget = arr[Math.floor(Math.random() * arr.length)];
+      document.getElementById('targetChar').textContent = pTarget;
+      document.getElementById('targetHint').textContent = activeModule.type === 'chars' ? "반짝이는 키를 누르세요" : "단어를 따라 치세요";
+
+      if (activeModule.type === 'chars') highlightKey(pTarget);
+      else highlightKey(pTarget[0]);
+    }
+
+    function updatePStats() {
+      const goal = activeModule.goal;
+      document.getElementById('scoreText').textContent = `${pScore}/${goal}`;
+      const acc = pAttempts === 0 ? 100 : Math.round((pScore / pAttempts) * 100);
+      document.getElementById('accText').textContent = `${acc}%`;
+      document.getElementById('progressBar').style.width = `${(pScore / goal) * 100}%`;
+
+      if (pScore >= goal) {
+        document.getElementById('passBtn').style.display = 'block';
+        document.getElementById('practiceInput').disabled = true;
+      } else {
+        document.getElementById('practiceInput').disabled = false;
+      }
+    }
+
+    document.getElementById('practiceInput').addEventListener('input', (e) => {
+      if (!activeModule) return;
+      const val = e.target.value;
+      if (activeModule.type === 'chars') {
+        if (val.endsWith(pTarget)) { pScore++; pAttempts++; e.target.value = ""; nextPTarget(); updatePStats(); }
+        else if (val.length > 5) e.target.value = "";
+      }
+    });
+    document.getElementById('practiceInput').addEventListener('keydown', (e) => {
+      if (!activeModule || activeModule.type !== 'words' || e.key !== 'Enter') return;
+      pAttempts++;
+      if (e.target.value === pTarget) { pScore++; e.target.value = ""; nextPTarget(); }
+      else { e.target.classList.add('shake'); setTimeout(() => e.target.classList.remove('shake'), 400); e.target.value = ""; }
+      updatePStats();
+    });
+
+    document.getElementById('passBtn').onclick = goMenu;
+
+    function renderKeyboard() {
+      const c = document.getElementById('kbdContainer');
+      c.innerHTML = "";
+      const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+      rows.forEach(r => {
+        const d = document.createElement('div');
+        d.style.textAlign = 'center';
+        r.split('').forEach(k => {
+          const keyDiv = document.createElement('div');
+          keyDiv.className = 'key'; keyDiv.id = 'key-' + k;
+          keyDiv.textContent = KEYMAP[k] ? KEYMAP[k].ko : k;
+          d.appendChild(keyDiv);
+        });
+        c.appendChild(d);
+      });
+    }
+    function highlightKey(koChar) {
+      document.querySelectorAll('.key').forEach(k => k.classList.remove('hl'));
+      const en = CHAR_TO_KEY[koChar];
+      if (en) { const el = document.getElementById('key-' + en); if (el) el.classList.add('hl'); }
+    }
+
+    /* --- GAME MODE (Space) --- */
+    function startGame(m) {
+      activeModule = m;
+      gScore = 0; gLives = 3; gWords = [];
+      document.getElementById('menuView').style.display = 'none';
+      document.getElementById('gameView').style.display = 'block';
+      document.getElementById('gameOverMsg').style.display = 'none';
+
+      // Clear previous words
+      document.getElementById('wordArea').innerHTML = "";
+
+      // Init Stars
+      const bg = document.getElementById('starBg'); bg.innerHTML = "";
+      for (let i = 0; i < 50; i++) {
+        const s = document.createElement('div'); s.className = 'star';
+        s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%';
+        s.style.width = s.style.height = (Math.random() * 3 + 2) + 'px';
+        bg.appendChild(s);
+      }
+
+      document.getElementById('gameInput').value = "";
+      document.getElementById('gameInput').focus();
+      updateHUD();
+
+      // Loop
+      lastTime = performance.now();
+      gAnimation = requestAnimationFrame(gameLoop);
+
+      // Spawner
+      gSpawnRate = m.mode === 'high' ? 1500 : 2500;
+      gTimer = setInterval(spawnWord, gSpawnRate);
+    }
+
+    function stopGame() {
+      cancelAnimationFrame(gAnimation);
+      clearInterval(gTimer);
+    }
+
+    function restartGame() {
+      startGame(activeModule);
+    }
+
+    let lastTime = 0;
+    function gameLoop(time) {
+      if (gLives <= 0) return;
+      const dt = time - lastTime;
+      lastTime = time;
+
+      // Move words
+      const containerH = 600;
+      const area = document.getElementById('wordArea');
+
+      gWords.forEach((obj, idx) => {
+        if (obj.dead) return;
+        obj.y += obj.speed * (dt / 16);
+        obj.el.style.top = obj.y + 'px';
+
+        // Check Hit Floor
+        if (obj.y > containerH - 80) { // Hit mascot area
+          obj.dead = true;
+          obj.el.classList.add('crashed');
+          setTimeout(() => obj.el.remove(), 500);
+          gLives--;
+          shakeScreen();
+          updateHUD();
+          if (gLives <= 0) gameOver();
+        }
+      });
+
+      // Cleanup
+      gWords = gWords.filter(w => !w.dead); // Only keep words that are not dead
+
+      gAnimation = requestAnimationFrame(gameLoop);
+    }
+
+    function spawnWord() {
+      if (gLives <= 0) return;
+      const refId = activeModule.wordsRef;
+      const refMod = MODULES.find(x => x.id === refId);
+      const wList = refMod.words;
+
+      // Avoid duplicates on screen
+      const currentWords = gWords.filter(w => !w.dead).map(w => w.word);
+      const candidates = wList.filter(w => !currentWords.includes(w));
+      // Fallback if all occupied
+      const pool = candidates.length > 0 ? candidates : wList;
+
+      const wordText = pool[Math.floor(Math.random() * pool.length)];
+
+      const div = document.createElement('div');
+      div.className = 'word-bubble';
+      div.textContent = wordText;
+      div.style.left = (Math.random() * 80 + 10) + '%';
+      div.style.top = '-50px';
+      document.getElementById('wordArea').appendChild(div);
+
+      // Slower speed for mid
+      let baseSpeed = (Math.random() * 0.5 + 1);
+      if (activeModule.mode === 'mid') baseSpeed *= 0.6;
+
+      gWords.push({
+        word: wordText,
+        el: div,
+        y: -50,
+        speed: baseSpeed + (gScore * 0.03),
+        dead: false
+      });
+    }
+
+    function shakeScreen() {
+      const c = document.querySelector('.game-container');
+      c.classList.add('shake');
+      setTimeout(() => c.classList.remove('shake'), 400);
+    }
+
+    function updateHUD() {
+      document.getElementById('gScore').textContent = gScore;
+      let hearts = "";
+      for (let i = 0; i < gLives; i++) hearts += "❤️";
+      document.getElementById('gLives').textContent = hearts;
+    }
+
+    function gameOver() {
+      stopGame();
+      document.getElementById('finalScore').textContent = gScore;
+      document.getElementById('gameOverMsg').style.display = 'flex';
+    }
+
+    function checkGameMatch(val, inputEl) {
+      const matchIdx = gWords.findIndex(w => !w.dead && w.word === val);
+      if (matchIdx >= 0) {
+        // Hit!
+        const obj = gWords[matchIdx];
+        obj.dead = true;
+        obj.el.classList.add('matched');
+        setTimeout(() => obj.el.remove(), 200);
+        gScore++;
+        inputEl.value = "";
+        updateHUD();
+        return true;
+      }
+      return false;
+    }
+
+    document.getElementById('gameInput').addEventListener('input', (e) => {
+      checkGameMatch(e.target.value, e.target);
+    });
+
+    document.getElementById('gameInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (!checkGameMatch(e.target.value, e.target)) {
+          // Optional: shake input if wrong on Enter?
+          e.target.value = "";
+        }
+      }
+    });
+
+    // Init
+    renderMenu();
+
+  </script>
+</body>
+
+</html>
